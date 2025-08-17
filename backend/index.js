@@ -6,6 +6,8 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const COMPILER_SERVICE_URL = process.env.COMPILER_SERVICE_URL;
+
 
 // const { generateFile } = require('../compiler/generateFile');
 // const { generateInputFile } = require('../compiler/generateInputFile');
@@ -391,7 +393,7 @@ app.post("/submit", authenticate, async (req, res) => {
     try {
       // Call to code execution microservice
       const runResp = await axios.post(
-        "http://localhost:8080/run",
+       `${COMPILER_SERVICE_URL}/run`,
         { language, code, input: testCase.input },
         { timeout: 20000 }
       );
@@ -421,7 +423,7 @@ app.post("/submit", authenticate, async (req, res) => {
 // Optionally forward, for frontend:
 app.get("/compiler", async (req, res) => {
   try {
-    const health = await axios.get("http://localhost:8080/compiler");
+    const health = await axios.get(`${COMPILER_SERVICE_URL}/compiler`);
     res.json(health.data);
   } catch (err) {
     res.status(503).json({ online: false, error: 'Compiler unreachable' });
@@ -434,7 +436,7 @@ const axios = require('axios');
 app.post("/run", async (req, res) => {
   try {
     // Forward the request to the compiler service (port 8080)
-    const response = await axios.post("http://localhost:8080/run", req.body, { timeout: 20000 });
+    const response = await axios.post(`${COMPILER_SERVICE_URL}/run`, req.body, { timeout: 20000 });
     res.json(response.data);
   } catch (error) {
     const message = error.response?.data?.error || error.message || "Compiler error";
