@@ -30,7 +30,7 @@ DBConnection();
 
 // Middleware
 app.use(cors({
-  origin: true,      // set to your frontend origin in production
+  origin: process.env.FRONTEND_URL,      // set to your frontend origin in production
   credentials: true
 }));
 app.use(cookieParser());
@@ -171,7 +171,7 @@ app.post("/login", async (req, res) => {
       expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
       httpOnly: true,
       secure: process.env.NODE_ENV === "production", // true for HTTPS, false for local testing
-      sameSite: 'strict'
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
     };
     res.status(200)
       .cookie("token", token, cookieOptions)
@@ -197,7 +197,7 @@ app.post('/logout', (req, res) => {
     .clearCookie('token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict"
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
     })
     .status(200)
     .json({ success: true, message: "Logged out" });
