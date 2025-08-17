@@ -52,7 +52,7 @@ public class Main {
     async function fetchProblem() {
       if (!problemId) return;
       try {
-        const resp = await axios.get(`http://localhost:3000/admin/problems/${problemId}`, { withCredentials: true });
+        const resp = await axios.get(`${import.meta.env.VITE_BACKENDURL}/admin/problems/${problemId}`, { withCredentials: true });
         setProblemData(resp.data);
         // Auto-fill input with the first sample test case
         const firstSample = resp.data.testCases?.find(tc => !tc.isHidden);

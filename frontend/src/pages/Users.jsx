@@ -21,7 +21,7 @@ function Users() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch("http://localhost:3000/admin/users", {
+      const res = await fetch(`${import.meta.env.VITE_BACKENDURL}/admin/users`, {
         credentials: "include"  // Send cookies for authentication
       });
       if (!res.ok) throw new Error("Failed to fetch users");
@@ -41,7 +41,7 @@ function Users() {
       return;
     setDeletingId(id);
     try {
-      const res = await fetch(`http://localhost:3000/admin/users/${id}`, {
+      const res = await fetch(`${import.meta.env.VITE_BACKENDURL}/admin/users/${id}`, {
         method: "DELETE",
         credentials: "include"  // Send cookies for authentication
       });
@@ -60,7 +60,7 @@ function Users() {
     }
     setRoleUpdating(id);
     try {
-      const response = await fetch(`http://localhost:3000/admin/users/${id}/role`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKENDURL}/admin/users/${id}/role`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json"

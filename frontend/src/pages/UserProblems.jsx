@@ -4,9 +4,10 @@ import { Link } from "react-router-dom";
 // You may want to move this logic to a separate API util if you have one
 async function fetchProblems() {
   // Change endpoint if your backend is different
-  const res = await fetch("http://localhost:3000/problems", {
+  const res = await fetch(`${import.meta.env.VITE_BACKENDURL}/problems`, {
     credentials: "include", // Only needed if /problems is protected
   });
+
   if (!res.ok) throw new Error("Failed to load problems");
   return await res.json();   // expects array of problem objects
 }
@@ -65,8 +66,8 @@ export default function UserProblems() {
                         p.difficulty === "Easy"
                           ? "text-green-600"
                           : p.difficulty === "Medium"
-                          ? "text-yellow-600"
-                          : "text-red-600"
+                            ? "text-yellow-600"
+                            : "text-red-600"
                       }>
                         {p.difficulty}
                       </span>
@@ -74,13 +75,13 @@ export default function UserProblems() {
                     <td className="px-4 py-3 text-sm">
                       {p.tags && p.tags.length
                         ? p.tags.map((tag) => (
-                            <span
-                              key={tag}
-                              className="inline-block bg-indigo-100 text-indigo-700 rounded px-2 py-0.5 mr-1 text-xs"
-                            >
-                              {tag}
-                            </span>
-                          ))
+                          <span
+                            key={tag}
+                            className="inline-block bg-indigo-100 text-indigo-700 rounded px-2 py-0.5 mr-1 text-xs"
+                          >
+                            {tag}
+                          </span>
+                        ))
                         : <span className="text-gray-400">—</span>}
                     </td>
                   </tr>

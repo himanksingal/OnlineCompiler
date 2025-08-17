@@ -16,9 +16,10 @@ export default function ProblemDetail() {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch(`http://localhost:3000/admin/problems/${problemId}`, {
+        const response = await fetch(`${import.meta.env.VITE_BACKENDURL}/admin/problems/${problemId}`, {
           credentials: "include"
         });
+
         if (!response.ok) {
           throw new Error(`Problem not found (Status: ${response.status})`);
         }

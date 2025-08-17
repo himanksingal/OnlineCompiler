@@ -1,6 +1,6 @@
 // src/utils/AdminApi.js
 
-const API_BASE = 'http://localhost:3000/admin'; // Adjust if your backend base path is different
+const API_BASE = `${import.meta.env.VITE_BACKENDURL}/admin`; // Adjust if your backend base path is different
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('adminToken'); // adjust or remove if you use cookies only
