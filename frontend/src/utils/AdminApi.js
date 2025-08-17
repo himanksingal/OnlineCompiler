@@ -1,17 +1,34 @@
-const API_BASE = '/admin'; // Replace with your actual admin API base URL
+// src/utils/AdminApi.js
+
+const API_BASE = 'http://localhost:3000/admin'; // Adjust if your backend base path is different
 
 const getAuthHeaders = () => {
-  const token = localStorage.getItem('adminToken'); // your token storage mechanism
+  const token = localStorage.getItem('adminToken'); // adjust or remove if you use cookies only
   return {
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${token}`,
+    // Include the Authorization header if you use Bearer token auth (optional)
+    ...(token && { Authorization: `Bearer ${token}` }),
   };
 };
 
+async function handleResponse(res) {
+  if (res.ok) return res.json();
+  let errorText = 'Unknown error';
+  try {
+    const errData = await res.json();
+    errorText = errData.message || errData.error || JSON.stringify(errData);
+  } catch {
+    errorText = await res.text();
+  }
+  throw new Error(errorText);
+}
+
 export async function fetchProblems() {
-  const res = await fetch(`${API_BASE}/problems`, { headers: getAuthHeaders() });
-  if (!res.ok) throw new Error('Failed to fetch problems');
-  return res.json();
+  const res = await fetch(`${API_BASE}/problems`, {
+    headers: getAuthHeaders(),
+    credentials: 'include',
+  });
+  return handleResponse(res);
 }
 
 export async function createProblem(problem) {
@@ -19,9 +36,9 @@ export async function createProblem(problem) {
     method: 'POST',
     headers: getAuthHeaders(),
     body: JSON.stringify(problem),
+    credentials: 'include',
   });
-  if (!res.ok) throw new Error('Failed to create problem');
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function updateProblem(id, problem) {
@@ -29,18 +46,18 @@ export async function updateProblem(id, problem) {
     method: 'PUT',
     headers: getAuthHeaders(),
     body: JSON.stringify(problem),
+    credentials: 'include',
   });
-  if (!res.ok) throw new Error('Failed to update problem');
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function deleteProblem(id) {
   const res = await fetch(`${API_BASE}/problems/${id}`, {
     method: 'DELETE',
     headers: getAuthHeaders(),
+    credentials: 'include',
   });
-  if (!res.ok) throw new Error('Failed to delete problem');
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function addTestCase(problemId, testCase) {
@@ -48,26 +65,42 @@ export async function addTestCase(problemId, testCase) {
     method: 'POST',
     headers: getAuthHeaders(),
     body: JSON.stringify(testCase),
+    credentials: 'include',
   });
-  if (!res.ok) throw new Error('Failed to add test case');
-  return res.json();
-}
-
-export async function updateTestCase(problemId, testcaseId, testCaseData) {
-  const res = await fetch(`${API_BASE}/problems/${problemId}/testcases/${testcaseId}`, {
-    method: 'PUT',
-    headers: getAuthHeaders(),
-    body: JSON.stringify(testCaseData),
-  });
-  if (!res.ok) throw new Error('Failed to update test case');
-  return res.json();
+  return handleResponse(res);
 }
 
 export async function deleteTestCase(problemId, testcaseId) {
   const res = await fetch(`${API_BASE}/problems/${problemId}/testcases/${testcaseId}`, {
     method: 'DELETE',
     headers: getAuthHeaders(),
+    credentials: 'include',
   });
-  if (!res.ok) throw new Error('Failed to delete test case');
-  return res.json();
+  return handleResponse(res);
+}
+
+// Optional: implement updateTestCase, fetch single problem, etc., as needed.
+export async function updateTestCase(problemId, testcaseId, testCase) {
+  const res = await fetch(`${API_BASE}/problems/${problemId}/testcases/${testcaseId}`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(testCase),
+    credentials: 'include',
+  });
+  return handleResponse(res);
+}
+export async function fetchProblemById(problemId) {
+  const res = await fetch(`${API_BASE}/problems/${problemId}`, {
+    headers: getAuthHeaders(),
+    credentials: 'include',
+  });
+  return handleResponse(res);
+}
+
+export async function fetchTestCases(problemId) {
+  const res = await fetch(`${API_BASE}/problems/${problemId}/testcases`, {
+    headers: getAuthHeaders(),
+    credentials: 'include',
+  });
+  return handleResponse(res);
 }

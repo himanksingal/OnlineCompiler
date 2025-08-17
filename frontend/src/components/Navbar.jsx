@@ -1,95 +1,110 @@
-import React, { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { fetchMe, logoutUser } from '../services/auth';
 
 function Navbar() {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const [user, setUser] = useState(null);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  const toggleUserMenu = () => setIsUserMenuOpen(!isUserMenuOpen);
-  const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
+  // Reload user (and thus RBAC) on route change or mount
+  useEffect(() => {
+    fetchMe().then(setUser).catch(() => setUser(null));
+  }, [location.pathname]);
 
-  // Helper to check if path is active
+  const isAdmin = user?.role === "admin";
+  const isUser = user?.role === "user";
+
+  const toggleUserMenu = () => setIsUserMenuOpen(open => !open);
+  const toggleMobileMenu = () => setIsMobileMenuOpen(open => !open);
+
   const isActive = (path) => location.pathname === path;
 
+  // Logout with redirect
+  const handleLogout = async () => {
+    await logoutUser();
+    setUser(null);
+    navigate("/login", { replace: true });
+  };
+
   return (
-    <nav className="bg-white border-gray-200 dark:bg-gray-900">
+    <nav className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-950 shadow-lg sticky top-0 z-50">
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
-        <Link to="/" className="flex items-center space-x-3 rtl:space-x-reverse">
-          <img
-            src="https://flowbite.com/docs/images/logo.svg"
-            className="h-8"
-            alt="TidyBit Logo"
-          />
-          <span className="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">
-            TidyBit
-          </span>
+        {/* Logo */}
+        <Link
+          to={isAdmin ? "/admin/dashboard" : "/"}
+          className="text-indigo-300 font-black text-2xl tracking-tight hover:text-indigo-200 transition"
+        >
+          TidyBit
         </Link>
+        <div className="flex items-center md:order-2 space-x-3 relative">
+          {/* Profile & Logout if logged in */}
+          {
+            user ? (
+              <>
+                <button
+                  type="button"
+                  className="flex text-sm bg-indigo-700 rounded-full"
+                  onClick={toggleUserMenu}
+                  aria-expanded={isUserMenuOpen}
+                >
+                  <span className="sr-only">Open user menu</span>
+                  <span className="w-8 h-8 flex items-center justify-center rounded-full bg-indigo-600 text-white font-bold text-xl">
+                    {user.firstname?.charAt(0) || "U"}
+                  </span>
+                </button>
+                {/* Dropdown */}
+                {isUserMenuOpen && (
+                  <div className="absolute z-50 top-12 right-0 w-56 my-4 text-base bg-white text-gray-800 rounded shadow-lg dark:bg-gray-900 dark:text-gray-100">
+                    <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+                      <span className="block text-base font-semibold">{user.firstname}</span>
+                      <span className="block text-xs">{user.email}</span>
+                    </div>
+                    <ul className="py-2">
+                      <li>
+                        <Link
+                          to={isAdmin ? "/admin/profile" : "/profile"}
+                          className="block px-4 py-2 text-sm hover:bg-indigo-50 dark:hover:bg-gray-800"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        >
+                          Profile
+                        </Link>
+                      </li>
+                      <li>
+                        <button
+                          onClick={handleLogout}
+                          className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-gray-800"
+                        >
+                          Sign out
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                )}
+              </>
+            ) : (
+              <Link
+                to="/login"
+                className="px-4 py-1 rounded bg-indigo-600 text-white font-semibold hover:bg-indigo-700"
+              >
+                Login
+              </Link>
+            )
+          }
 
-        <div className="flex items-center md:order-2 space-x-3 md:space-x-0 rtl:space-x-reverse relative">
-          <button
-            type="button"
-            className="flex text-sm bg-gray-800 rounded-full md:me-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
-            id="user-menu-button"
-            aria-expanded={isUserMenuOpen}
-            onClick={toggleUserMenu}
-          >
-            <span className="sr-only">Open user menu</span>
-            <img
-              className="w-8 h-8 rounded-full"
-              src="/docs/images/people/profile-picture-3.jpg"
-              alt="user avatar"
-            />
-          </button>
-
-          {isUserMenuOpen && (
-            <div className="z-50 absolute top-12 right-0 w-48 my-4 text-base list-none bg-white divide-y divide-gray-100 rounded-lg shadow-lg dark:bg-gray-700 dark:divide-gray-600">
-              <div className="px-4 py-3">
-                <span className="block text-sm text-gray-900 dark:text-white">Admin User</span>
-                <span className="block text-sm text-gray-500 truncate dark:text-gray-400">admin@tidybit.com</span>
-              </div>
-              <ul className="py-2" aria-labelledby="user-menu-button">
-                {/* Removed Dashboard and Settings */}
-                
-                <li>
-                  <Link
-                    to="/admin/profile"
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
-                    onClick={() => setIsUserMenuOpen(false)}
-                  >
-                    Profile
-                  </Link>
-                </li>
-                <li>
-                  <button
-                    onClick={() => {
-                      alert('Log out clicked - integrate auth logout');
-                      setIsUserMenuOpen(false);
-                    }}
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
-                  >
-                    Sign out
-                  </button>
-                </li>
-              </ul>
-            </div>
-          )}
-
+          {/* Hamburger for mobile */}
           <button
             onClick={toggleMobileMenu}
             type="button"
-            className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600"
+            className="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-indigo-400 rounded-lg md:hidden hover:bg-gray-700 focus:outline-none"
             aria-controls="navbar-default"
             aria-expanded={isMobileMenuOpen}
           >
             <span className="sr-only">Open main menu</span>
-            <svg
-              className="w-5 h-5"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 17 14"
-            >
+            <svg className="w-5 h-5" aria-hidden="true" fill="none" viewBox="0 0 17 14">
               <path
                 stroke="currentColor"
                 strokeLinecap="round"
@@ -100,65 +115,66 @@ function Navbar() {
             </svg>
           </button>
         </div>
-
-        <div
-          className={`${isMobileMenuOpen ? 'block' : 'hidden'} items-center justify-between w-full md:flex md:w-auto md:order-1`}
-          id="navbar-default"
-        >
-          <ul className="flex flex-col font-medium p-4 md:p-0 mt-4 border border-gray-100 rounded-lg bg-gray-50 md:flex-row md:space-x-8 md:mt-0 md:border-0 md:bg-white dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700 rtl:space-x-reverse">
-            <li>
-              <Link
-                to="/admin/dashboard"
-                className={`block py-2 px-3 md:p-0 rounded md:bg-transparent md:text-blue-700 md:dark:text-blue-500
-                  ${isActive('/admin/dashboard')
-                    ? 'text-white bg-blue-700'
-                    : 'text-gray-900 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700'
-                  }`}
-                aria-current={isActive('/admin/dashboard') ? 'page' : undefined}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Dashboard
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/admin/problems"
-                className={`block py-2 px-3 md:p-0 rounded md:bg-transparent md:text-blue-700 md:dark:text-blue-500
-                  ${isActive('/admin/problems')
-                    ? 'text-white bg-blue-700'
-                    : 'text-gray-900 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700'
-                  }`}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Problems
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/admin/submissions"
-                className={`block py-2 px-3 md:p-0 rounded md:bg-transparent md:text-blue-700 md:dark:text-blue-500
-                  ${isActive('/admin/submissions')
-                    ? 'text-white bg-blue-700'
-                    : 'text-gray-900 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700'
-                  }`}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Submissions
-              </Link>
-            </li>
-            <li>
-              <Link
-                to="/admin/users"
-                className={`block py-2 px-3 md:p-0 rounded md:bg-transparent md:text-blue-700 md:dark:text-blue-500
-                  ${isActive('/admin/users')
-                    ? 'text-white bg-blue-700'
-                    : 'text-gray-900 hover:bg-gray-100 md:hover:bg-transparent md:hover:text-blue-700 dark:text-white dark:hover:bg-gray-700 dark:hover:text-white md:dark:hover:bg-transparent dark:border-gray-700'
-                  }`}
-                onClick={() => setIsMobileMenuOpen(false)}
-              >
-                Users
-              </Link>
-            </li>
+        {/* Main nav links - RBAC */}
+        <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} items-center w-full md:flex md:w-auto md:order-1`} id="navbar-default">
+          <ul className="flex flex-col font-medium p-4 md:p-0 mt-4 md:flex-row md:space-x-8 md:mt-0 bg-transparent">
+            {isAdmin && (
+              <>
+                <li>
+                  <Link
+                    to="/admin/problems"
+                    className={`block py-2 px-3 rounded ${isActive('/admin/problems') ? 'bg-indigo-700 text-white' : 'text-indigo-300 hover:bg-gray-800'} font-semibold`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >Problems</Link>
+                </li>
+                <li>
+                  <Link
+                    to="/admin/submissions"
+                    className={`block py-2 px-3 rounded ${isActive('/admin/submissions') ? 'bg-indigo-700 text-white' : 'text-indigo-300 hover:bg-gray-800'} font-semibold`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >Submissions</Link>
+                </li>
+                <li>
+                  <Link
+                    to="/admin/users"
+                    className={`block py-2 px-3 rounded ${isActive('/admin/users') ? 'bg-indigo-700 text-white' : 'text-indigo-300 hover:bg-gray-800'} font-semibold`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >Users</Link>
+                </li>
+                <li>
+                  <Link
+                    to="/admin/leaderboard"
+                    className={`block py-2 px-3 rounded ${isActive('/admin/leaderboard') ? 'bg-indigo-700 text-white' : 'text-indigo-300 hover:bg-gray-800'} font-semibold`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >Leaderboard</Link>
+                </li>
+              </>
+            )}
+            {isUser && (
+              <>
+                <li>
+                  <Link
+                    to="/problems"
+                    className={`block py-2 px-3 rounded ${isActive('/problems') ? 'bg-indigo-700 text-white' : 'text-indigo-300 hover:bg-gray-800'} font-semibold`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >Problems</Link>
+                </li>
+                <li>
+                  <Link
+                    to="/submissions"
+                    className={`block py-2 px-3 rounded ${isActive('/submissions') ? 'bg-indigo-700 text-white' : 'text-indigo-300 hover:bg-gray-800'} font-semibold`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >Submissions</Link>
+                </li>
+                <li>
+                  <Link
+                    to="/leaderboard"
+                    className={`block py-2 px-3 rounded ${isActive('/leaderboard') ? 'bg-indigo-700 text-white' : 'text-indigo-300 hover:bg-gray-800'} font-semibold`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >Leaderboard</Link>
+                </li>
+              </>
+            )}
           </ul>
         </div>
       </div>

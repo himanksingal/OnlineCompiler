@@ -14,32 +14,88 @@ import Profile from './pages/Profile.jsx';
 import About from './pages/About.jsx';
 import Contact from './pages/Contact.jsx';
 import NotFound from './pages/NotFound.jsx';
+import ProblemDetail from './pages/ProblemDetail';
+import UserProblems from './pages/UserProblems.jsx';
 
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+
+import Homepage from './pages/Homepage.jsx';
+import ProtectedRoute from './router/ProtectedRoute.jsx';
 
 function App() {
   return (
     <>
       <Navbar />
       <main className="min-h-[calc(100vh-5rem)] container mx-auto px-4 py-6">
-        <Routes>
-          <Route path="/" element={<Navigate to="/admin/dashboard" replace />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/problems" element={<Problems />} />
-          <Route path="/admin/submissions" element={<Submissions />} />
-          <Route path="/admin/users" element={<Users />} />
-          <Route path="/admin/profile" element={<Profile />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
+<Routes>
+  {/* PUBLIC ROUTES */}
+  <Route path="/" element={<Homepage />} />
+  <Route path="/login" element={<LoginPage />} />
+  <Route path="/register" element={<RegisterPage />} />
+  <Route path="/about" element={<About />} />
+  <Route path="/contact" element={<Contact />} />
+  <Route path="/problems" element={<UserProblems />} />
 
-          <Route path="/" element={<Navigate to="/login" />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+  {/* USER-PROTECTED ROUTES */}
+  <Route
+    path="/problems/:problemId"
+    element={<ProtectedRoute><ProblemDetail /></ProtectedRoute>}
+  />
+  <Route
+    path="/submissions"
+    element={<ProtectedRoute><Submissions /></ProtectedRoute>}
+  />
+  <Route
+    path="/profile"
+    element={<ProtectedRoute><Profile /></ProtectedRoute>}
+  />
 
-          {/* Catch-all route */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+  {/* ADMIN-ONLY ROUTES */}
+  <Route
+    path="/admin/dashboard"
+    element={
+      <ProtectedRoute requiredRole="admin">
+        <AdminDashboard />
+      </ProtectedRoute>
+    }
+  />
+  <Route
+    path="/admin/problems"
+    element={
+      <ProtectedRoute requiredRole="admin">
+        <Problems />
+      </ProtectedRoute>
+    }
+  />
+  <Route
+    path="/admin/submissions"
+    element={
+      <ProtectedRoute requiredRole="admin">
+        <Submissions />
+      </ProtectedRoute>
+    }
+  />
+  <Route
+    path="/admin/users"
+    element={
+      <ProtectedRoute requiredRole="admin">
+        <Users />
+      </ProtectedRoute>
+    }
+  />
+  <Route
+    path="/admin/profile"
+    element={
+      <ProtectedRoute requiredRole="admin">
+        <Profile />
+      </ProtectedRoute>
+    }
+  />
+
+  {/* NOT FOUND */}
+  <Route path="*" element={<NotFound />} />
+</Routes>
       </main>
       <Footer />
     </>
