@@ -64,8 +64,8 @@ export default function AuthForm({ mode }) {
                 </h2>
                 <div className="text-gray-500 text-sm mb-2">
                     {isRegister
-                        ? "Join the coding community!"
-                        : "Log in to start solving problems."}
+                        ? "Join the FinSight community!"
+                        : "Log in to start managing finances."}
                 </div>
             </div>
 
